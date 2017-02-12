@@ -1,28 +1,29 @@
 #!/bin/bash
 #
-# backup.sh
+# add_img.sh
 #
 # By Matt Agresta
-# 01/28/2017
-# Copies files from raspberry pi to local disk 
-# 
+# 02/11/2017
+# Create base image from sd card 
+# Create config for image 
 # Variables
 BKUPDIR=/backup
-$CONFIG=/data/piBack/config
+IMAGES=$BKUPDIR/images
+CONFIG=/data/piBack/config
 
-while getopts ":s:h" opt; do
+while getopts ":s:d:h" opt; do
   case $opt in
     s)
       HOST=$OPTARG
       ;;
     d)
-      DEST=$OPTARG
+      DEVICE=$OPTARG
       ;;
     h)
       echo "Usage....."
       echo "  Options:"
       echo "      -s: Required, Server name"
-      echo "      -d: Required, Destination Folder"
+      echo "      -d: Required, Source name"
       exit 0
       ;;
     \?)
@@ -36,6 +37,5 @@ while getopts ":s:h" opt; do
   esac
 done
 
-
-#Run Backup 
-/usr/bin/rdiff-backup --exclude-globbing-filelist $CONFIG/$HOST.filelist $HOST::/ $BKUPDIR/$HOST
+#Create Image
+dd bs=4096 if=$DEVICE of=$IMAGES/$HOST.img

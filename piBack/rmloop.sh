@@ -43,4 +43,4 @@ do
 done
 
 #Destroy Loopback
-losetup -d $loop_dev
+losetup -d /dev/$loop_dev
