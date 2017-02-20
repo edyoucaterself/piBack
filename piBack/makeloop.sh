@@ -12,6 +12,7 @@ while getopts ":i:h" opt; do
       echo "Usage....."
       echo "  Options:"
       echo "      -i: Required, path to image file"
+      exit 0
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2

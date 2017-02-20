@@ -37,5 +37,8 @@ while getopts ":s:d:h" opt; do
   esac
 done
 
+#Debug output
+echo "Reading $DEVICE to $IMAGES/$HOST.img"
+
 #Create Image
 dd bs=4096 if=$DEVICE of=$IMAGES/$HOST.img
