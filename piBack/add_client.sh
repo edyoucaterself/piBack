@@ -44,11 +44,11 @@ do
    PARTNAME=$(echo $PART | awk -F\/ '{print $NF}')
    #Get UUID of loop partitions
    LUUID=$(blkid -s UUID -o value $PART) 
-   BLOCKDEV=$(ssh -q piback@$HOST "sudo blkid -U $LUUID")
-   TARGET=$(ssh -q piback@$HOST "sudo mount" | grep -e ^$BLOCKDEV | awk '{print $3}')
+   BLOCKDEV=$(ssh -q -i ~piback/.ssh/id_rsa piback@$HOST "sudo blkid -U $LUUID")
+   TARGET=$(ssh -q -i ~piback/.ssh/id_rsa piback@$HOST "sudo mount" | grep -e ^$BLOCKDEV | awk '{print $3}')
 
    #Write Config info to file
-   echo "$PART:$BLOCKDEV:$TARGET:$LUUID" >> $CONFIGFILE
+   echo "$PARTNAME:$BLOCKDEV:$TARGET:$LUUID" >> $CONFIGFILE
 
    #Create partition exclude lists
    touch $CONFIGDIR/$HOST.$PARTNAME.exclude

@@ -40,9 +40,8 @@ LOOP=$($APPDIR/makeloop.sh -i $IMGFILE)
 #Look partitions in config file
 awk -F':' '{print $1" "$2" "$3" "$4}' $CONFIGDIR/$HOST.config | while read LPART BLOCKDEV TARGET UUID
 do
-   DEST=$MNTDIR/$HOST-$LPART
+   DEST=/mnt/$HOST.img-$LPART
    echo "Backing up $HOST:$TARGET to $DEST"
-   echo "Scanning Block Device: $BLOCKDEV"
    #rdiff-backup --create-full-path --exclude-globbing-filelist $CONFIGDIR/$HOST.$NUM.exclude root@$HOST::$TARGET $DEST
 
 done

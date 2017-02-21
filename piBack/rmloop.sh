@@ -25,14 +25,12 @@ while getopts ":d:h" opt; do
   esac
 done
 
-echo "Cleaning up ${loop_dev}"
 
 #Grab loop name
 loop_name=$(echo $loop_dev | awk -F\/ '{print $3}')
 #Look for partitions
 for part in `ls -d /mnt/*$loop_name*/`
 do
-     echo "Unmounting ${part}"
      mnt_chk=$(umount $part)
      #Check if mounted still, if so skip rm -rf and set flag
      if [[ $? -ne 0 ]];
