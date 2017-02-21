@@ -38,13 +38,18 @@ partprobe $loop_dev
 #Look for partitions
 for part in `ls $loop_dev*`
 do
+     #Skip Loop Device - Currently Not working
      item=$(echo $part | awk -F\/ '{print $3}')
-     img_name=$(echo $img_file | awk -F\/ '{print $NF}')
-     if [[ "$item" == "loop0" ]];
+     if [[ "$item" =~ loop[0-9]$ ]];
      then
+          loop_name=$item
           continue
      fi
+
+     img_name=$(echo $img_file | awk -F\/ '{print $NF}')
      mkdir /mnt/$img_name-$item
      mount $part /mnt/$img_name-$item
-     echo "/mnt/${img_name}-${item} Created." 
+     #echo "/mnt/${img_name}-${item} Created." 
 done
+
+echo $loop_name

@@ -7,16 +7,11 @@
 # Copies files from raspberry pi to local disk 
 # 
 # Variables
-BKUPDIR=/backup
-$CONFIG=/data/piBack/config
 
 while getopts ":s:h" opt; do
   case $opt in
     s)
       HOST=$OPTARG
-      ;;
-    d)
-      DEST=$OPTARG
       ;;
     h)
       echo "Usage....."
@@ -36,6 +31,21 @@ while getopts ":s:h" opt; do
   esac
 done
 
+#Variables
+IMGFILE=$BCKUPDIR/$HOST.img
 
-#Run Backup 
-/usr/bin/rdiff-backup --exclude-globbing-filelist $CONFIG/$HOST.filelist $HOST::/ $BKUPDIR/$HOST
+#Mount Image File
+LOOP=$($APPDIR/makeloop.sh -i $IMGFILE)
+
+#Look partitions in config file
+awk -F':' '{print $1" "$2" "$3" "$4}' $CONFIGDIR/$HOST.config | while read LPART BLOCKDEV TARGET UUID
+do
+   DEST=$MNTDIR/$HOST-$LPART
+   echo "Backing up $HOST:$TARGET to $DEST"
+   echo "Scanning Block Device: $BLOCKDEV"
+   #rdiff-backup --create-full-path --exclude-globbing-filelist $CONFIGDIR/$HOST.$NUM.exclude root@$HOST::$TARGET $DEST
+
+done
+
+#Close Loop
+$APPDIR/rmloop.sh -d $LOOP
