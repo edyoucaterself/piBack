@@ -35,36 +35,46 @@ CONFIGFILE=$CONFIGDIR/$HOST.config
 touch $CONFIGFILE
 cat /dev/null > $CONFIGFILE
 
-#Mount Image
-LOOP=$($APPDIR/makeloop.sh -i $BCKUPDIR/$HOST.img)
+declare -a CONFIGLIST
 
-for PART in `fdisk -l /dev/$LOOP | grep -e ^/dev | awk '{print $1}'`
-do
-   #Get Loops name
-   PARTNAME=$(echo $PART | awk -F\/ '{print $NF}')
-   #Get UUID of loop partitions
-   LUUID=$(blkid -s UUID -o value $PART) 
-   BLOCKDEV=$(ssh -q -i ~piback/.ssh/id_rsa piback@$HOST "sudo blkid -U $LUUID")
-   TARGET=$(ssh -q -i ~piback/.ssh/id_rsa piback@$HOST "sudo mount" | grep -e ^$BLOCKDEV | awk '{print $3}')
+#Connect to host and gather info
+CFGINFO=$(ssh $HOST /bin/bash <<'EOSSH'
 
-   #Write Config info to file
-   echo "$PARTNAME:$BLOCKDEV:$TARGET:$LUUID" >> $CONFIGFILE
+   #Search for block devices
+   lsblk -nbo TYPE,NAME,MOUNTPOINT,SIZE | while read DEVTYPE DEVNAME TARGET SIZEKB
+   do
+      #Get Disk Info
+      if [[ $DEVTYPE == "disk" ]]     
+      then
+         #Values shift with only 3 columns
+         SIZEKB=$TARGET
+         BLOCKSIZE=$(sudo blockdev --getbsz /dev/$DEVNAME)
+         echo "DISK:$DEVNAME:$SIZEKB:$BLOCKSIZE"
+      fi
+      #Get Part info
+      if [[ $DEVTYPE == "part" ]]     
+      then
+         #Need TYPE:PARTNAME:PARTNUM:TARGET 
+         PART=$(echo $DEVNAME | tr -cd '[[:alnum:]]._-')
+         [[ $PART =~ (.*)(p[0-9]*) ]]
+         DEVNAME=${BASH_REMATCH[1]}
+         PARTNUM=${BASH_REMATCH[2]} 
+         
 
-   #Create partition exclude lists
-   touch $CONFIGDIR/$HOST.$PARTNAME.exclude
-   #cat /dev/null > $CONFIGDIR/$HOST.$PARTNAME.exclude
+         if [[ $TARGET == "/" ]]
+         then
+            declare -a EXCLUDELIST=('/boot' '/proc')
+            #tmpfs to add
+            EXCLUDELIST=("${EXCLUDELIST[@]}"  $(df | grep tmpfs | awk '{print $6}'))
 
-   #If Root partition add boot to file
-   #Eventually will look for target parent in targets list and add to relative exclusion list
-   if [[ $TARGET == "/" ]]
-   then
-     echo "/boot" >> $CONFIGDIR/$HOST.$PARTNAME.exclude
-   fi
-   
-   #Coming Soon....
-   #Detect NFS Mounts under TARGET and add to exclusion
+         fi
+         echo "PART:$DEVNAME:$PARTNUM:$TARGET:${EXCLUDELIST[@]}"
 
-done
+      fi
+   done
 
-#Unmount image
-$APPDIR/rmloop.sh -d $LOOP   
+EOSSH
+)
+
+echo "$CFGINFO" 
+

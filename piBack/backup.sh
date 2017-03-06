@@ -42,7 +42,7 @@ awk -F':' '{print $1" "$2" "$3" "$4}' $CONFIGDIR/$HOST.config | while read LPART
 do
    DEST=/mnt/$HOST.img-$LPART
    echo "Backing up $HOST:$TARGET to $DEST"
-   #rdiff-backup --create-full-path --exclude-globbing-filelist $CONFIGDIR/$HOST.$NUM.exclude root@$HOST::$TARGET $DEST
+   rdiff-backup --create-full-path --force --exclude-globbing-filelist $CONFIGDIR/$HOST.$LPART.exclude root@$HOST::$TARGET $DEST
 
 done
 
