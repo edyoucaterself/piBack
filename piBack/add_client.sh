@@ -65,10 +65,13 @@ CFGINFO=$(ssh $HOST /bin/bash <<'EOSSH'
          then
             declare -a EXCLUDELIST=('/boot' '/proc')
             #tmpfs to add
+            #EXCLUDELIST=("${EXCLUDELIST[@]}"  $(df | grep tmpfs | awk '{print $6}' | tr '\n' ' ' | sed '$s/ $/\n/'))
             EXCLUDELIST=("${EXCLUDELIST[@]}"  $(df | grep tmpfs | awk '{print $6}'))
 
          fi
-         echo "PART:$DEVNAME:$PARTNUM:$TARGET:${EXCLUDELIST[@]}"
+         #echo "PART:$DEVNAME:$PARTNUM:$TARGET:${EXCLUDELIST[@]}" | sed 's/[:]*$//'
+         echo "PART:$DEVNAME:$PARTNUM:$TARGET" 
+         echo "${EXCLUDELIST[@]}"
 
       fi
    done
@@ -76,5 +79,22 @@ CFGINFO=$(ssh $HOST /bin/bash <<'EOSSH'
 EOSSH
 )
 
-echo "$CFGINFO" 
+#Loop through CFGINFO and write config files
+for i in `echo $CFGINFO`
+do
+   if [[ $i =~ ^DISK.* ]]
+   then
+      echo "$i" >> $CONFIGFILE
+   elif [[ $i =~ ^PART:(.*):(.*):(.*) ]]
+   then
+      #Capture PARTName for config file name
+      DEVNAME=${BASH_REMATCH[1]}
+      PARTNUM=${BASH_REMATCH[2]} 
+      echo "$i" >> $CONFIGFILE
+      PARTCFG=$CONFIGDIR/$HOST.$DEVNAME$PARTNUM.exclude
+   elif [[ $i =~ ^\/.* ]]
+   then
+      echo "$i" >> $PARTCFG
+   fi
+done
 
