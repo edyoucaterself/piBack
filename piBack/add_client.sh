@@ -92,6 +92,9 @@ do
       PARTNUM=${BASH_REMATCH[2]} 
       echo "$i" >> $CONFIGFILE
       PARTCFG=$CONFIGDIR/$HOST.$DEVNAME$PARTNUM.exclude
+      #Clean File
+      touch $PARTCFG
+      cat /dev/null > $PARTCFG
    elif [[ $i =~ ^\/.* ]]
    then
       echo "$i" >> $PARTCFG

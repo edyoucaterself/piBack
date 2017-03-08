@@ -1,4 +1,5 @@
 #!/bin/bash
+# DEPRICATED
 #
 # add_img.sh
 #

@@ -1,0 +1,9 @@
+/boot
+/proc
+/dev
+/dev/shm
+/run
+/run/lock
+/sys/fs/cgroup
+/run/user/1000
+/run/user/1001
