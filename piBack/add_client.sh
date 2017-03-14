@@ -63,13 +63,19 @@ CFGINFO=$(ssh $HOST /bin/bash <<'EOSSH'
 
          if [[ $TARGET == "/" ]]
          then
-            declare -a EXCLUDELIST=('/boot' '/proc')
+            declare -a EXCLUDELIST
             #tmpfs to add
-            #EXCLUDELIST=("${EXCLUDELIST[@]}"  $(df | grep tmpfs | awk '{print $6}' | tr '\n' ' ' | sed '$s/ $/\n/'))
-            EXCLUDELIST=("${EXCLUDELIST[@]}"  $(df | grep tmpfs | awk '{print $6}'))
-
+            declare -a MOUNTLIST=($(df -a | awk '{print $6}' | sed "1 d"))
+            #Search through list for dummy files
+            for x in ${MOUNTLIST[@]}
+            do
+               if [[ $x != $TARGET ]] 
+               then
+                  echo "Inner$x"
+                  EXCLUDELIST=(${EXCLUDELIST[@]} $x)
+               fi
+           done
          fi
-         #echo "PART:$DEVNAME:$PARTNUM:$TARGET:${EXCLUDELIST[@]}" | sed 's/[:]*$//'
          echo "PART:$DEVNAME:$PARTNUM:$TARGET" 
          echo "${EXCLUDELIST[@]}"
 

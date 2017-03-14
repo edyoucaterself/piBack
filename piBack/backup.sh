@@ -17,7 +17,6 @@ while getopts ":s:h" opt; do
       echo "Usage....."
       echo "  Options:"
       echo "      -s: Required, Server name"
-      echo "      -d: Required, Destination Folder"
       exit 0
       ;;
     \?)
@@ -31,20 +30,20 @@ while getopts ":s:h" opt; do
   esac
 done
 
-#Variables
-IMGFILE=$BCKUPDIR/$HOST.img
-
-#Mount Image File
-LOOP=$($APPDIR/makeloop.sh -i $IMGFILE)
 
 #Look partitions in config file
-awk -F':' '{print $1" "$2" "$3" "$4}' $CONFIGDIR/$HOST.config | while read LPART BLOCKDEV TARGET UUID
+awk -F':' '{print $1" "$2" "$3" "$4}' $CONFIGDIR/$HOST.config | while read TYPE NAME NUM TARGET 
 do
-   DEST=/mnt/$HOST.img-$LPART
-   echo "Backing up $HOST:$TARGET to $DEST"
-   rdiff-backup --create-full-path --force --exclude-globbing-filelist $CONFIGDIR/$HOST.$LPART.exclude root@$HOST::$TARGET $DEST
-
+   if [[ $TYPE =~ ^PART ]]
+   then
+      #Set up destination
+      DEST=$BCKUPDIR/$HOST/$NAME$NUM
+      mkdir -p $DEST
+      #Exclusion file for partition
+      XFILE=/$CONFIGDIR/$HOST.$NAME$NUM.exclude
+      
+      echo "Backing up $HOST:$TARGET to $DEST"
+      rdiff-backup --create-full-path --force --exclude-globbing-filelist $XFILE root@$HOST::$TARGET $DEST
+   fi
 done
 
-#Close Loop
-$APPDIR/rmloop.sh -d $LOOP
